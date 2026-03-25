@@ -1,0 +1,236 @@
+<!-- 优客欢经营数据分析系统 - 满屏一页版 -->
+<style>
+*{margin:0;padding:0;box-sizing:border-box;}
+html,body{width:100%;height:100%;overflow:hidden;}
+#ykh{width:100vw;height:100vh;background:#0a1628;color:#fff;font-family:'Microsoft YaHei',sans-serif;display:flex;flex-direction:column;overflow:hidden;}
+
+/* 顶部栏 高度固定48px */
+.yh-top{height:48px;flex-shrink:0;display:flex;align-items:center;justify-content:space-between;padding:0 20px;background:linear-gradient(90deg,#0d1321,#1a2540,#0d1321);border-bottom:1px solid rgba(243,156,18,0.3);}
+.yh-logo{font-size:1.2rem;font-weight:bold;color:#f39c12;letter-spacing:2px;}
+.yh-title{font-size:1.3rem;font-weight:bold;letter-spacing:4px;background:linear-gradient(90deg,#f39c12,#fff,#f39c12);-webkit-background-clip:text;-webkit-text-fill-color:transparent;}
+.yh-info{display:flex;align-items:center;gap:15px;font-size:0.85rem;}
+.yh-date{color:#f39c12;}
+.yh-time{font-size:1rem;font-weight:bold;color:#fff;}
+
+/* 主体 高度 = 100vh - 48px，三列 */
+.yh-body{flex:1;display:grid;grid-template-columns:1fr 1.3fr 1fr;gap:6px;padding:6px;min-height:0;overflow:hidden;}
+
+/* 每列 */
+.yh-col{display:flex;flex-direction:column;gap:6px;min-height:0;overflow:hidden;}
+
+/* 面板 */
+.yh-p{background:rgba(16,24,48,0.95);border:1px solid rgba(243,156,18,0.15);border-radius:8px;padding:8px;display:flex;flex-direction:column;min-height:0;overflow:hidden;}
+.yh-pt{font-size:0.72rem;color:#f39c12;padding-bottom:5px;border-bottom:1px solid rgba(255,255,255,0.08);margin-bottom:5px;flex-shrink:0;white-space:nowrap;}
+.yh-chart{flex:1;position:relative;min-height:0;}
+.yh-chart canvas{position:absolute;inset:0;width:100%!important;height:100%!important;}
+
+/* 核心数据卡片 */
+.yh-cards{display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;}
+.yh-card{background:rgba(243,156,18,0.12);border:1px solid rgba(243,156,18,0.25);border-radius:6px;padding:8px;text-align:center;}
+.yh-cl{font-size:0.65rem;color:rgba(255,255,255,0.65);margin-bottom:3px;}
+.yh-cv{font-size:1.4rem;font-weight:bold;color:#f39c12;line-height:1;}
+.yh-cu{font-size:0.65rem;color:rgba(255,255,255,0.5);}
+
+/* 会员 */
+.yh-mem{display:grid;grid-template-columns:1fr 1fr;gap:6px;}
+.yh-mc{border-radius:6px;padding:8px;text-align:center;}
+.yh-mc.n{background:rgba(46,204,113,0.12);border:1px solid rgba(46,204,113,0.3);}
+.yh-mc.t{background:rgba(52,152,219,0.12);border:1px solid rgba(52,152,219,0.3);}
+.yh-ml{font-size:0.65rem;color:rgba(255,255,255,0.65);margin-bottom:3px;}
+.yh-mv{font-size:1.2rem;font-weight:bold;}
+.yh-mc.n .yh-mv{color:#2ecc71;}
+.yh-mc.t .yh-mv{color:#3498db;}
+
+/* 排行 */
+.yh-ri{display:flex;align-items:center;gap:6px;padding:3px 0;border-bottom:1px solid rgba(255,255,255,0.05);}
+.yh-rn{width:16px;height:16px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:0.6rem;font-weight:bold;flex-shrink:0;}
+.yh-rname{flex:1;font-size:0.75rem;}
+.yh-rbar{width:60px;height:5px;background:rgba(255,255,255,0.1);border-radius:3px;overflow:hidden;}
+.yh-rfill{height:100%;background:linear-gradient(90deg,#f39c12,#f1c40f);border-radius:3px;}
+.yh-rpct{font-size:0.7rem;color:#f39c12;width:28px;text-align:right;}
+
+/* 实时成交 */
+.yh-rti{display:grid;grid-template-columns:72px 1fr 65px;gap:4px;padding:4px 0;border-bottom:1px solid rgba(255,255,255,0.05);font-size:0.72rem;transition:all 0.4s;}
+.yh-rtt{color:#f39c12;}
+.yh-rts{color:rgba(255,255,255,0.85);}
+.yh-rta{color:#2ecc71;font-weight:bold;text-align:right;}
+
+/* TOP滚动 */
+.yh-scroll{flex:1;overflow:hidden;position:relative;}
+.yh-si{display:flex;justify-content:space-between;padding:3px 0;border-bottom:1px solid rgba(255,255,255,0.05);font-size:0.72rem;}
+.yh-si span:last-child{color:#f39c12;}
+
+/* 地图容器 */
+.yh-map{flex:1;min-height:0;}
+</style>
+
+<div id="ykh">
+  <!-- 顶部 -->
+  <div class="yh-top">
+    <div class="yh-logo"><img src="logo.png" alt="优客欢" style="height:36px;vertical-align:middle;object-fit:contain;"></div>
+    <div class="yh-title">经 营 数 据 分 析 系 统</div>
+    <div class="yh-info">
+      <span class="yh-date" id="yh_d">2026年03月26日 星期四</span>
+      <span class="yh-time" id="yh_t">00:00:00</span>
+    </div>
+  </div>
+
+  <!-- 主体三列 -->
+  <div class="yh-body">
+
+    <!-- ===== 左列 ===== -->
+    <div class="yh-col">
+      <div class="yh-p" style="flex:1.2;">
+        <div class="yh-pt">📊 建店状态数据</div>
+        <div class="yh-chart"><canvas id="c_store"></canvas></div>
+      </div>
+      <div class="yh-p" style="flex:1.5;">
+        <div class="yh-pt">🗺️ 门店地域分布统计</div>
+        <div class="yh-chart"><canvas id="c_region"></canvas></div>
+      </div>
+      <div class="yh-p" style="flex:1.1;">
+        <div class="yh-pt">👣 客流量时段统计</div>
+        <div class="yh-chart"><canvas id="c_flow"></canvas></div>
+      </div>
+      <div class="yh-p" style="flex:1.1;">
+        <div class="yh-pt">🏆 畅销品类排行榜</div>
+        <div style="flex:1;overflow:hidden;">
+          <div class="yh-ri"><span class="yh-rn" style="background:#e74c3c;">1</span><span class="yh-rname">生鲜果蔬</span><div class="yh-rbar"><div class="yh-rfill" style="width:95%"></div></div><span class="yh-rpct">95%</span></div>
+          <div class="yh-ri"><span class="yh-rn" style="background:#e67e22;">2</span><span class="yh-rname">日用百货</span><div class="yh-rbar"><div class="yh-rfill" style="width:85%"></div></div><span class="yh-rpct">85%</span></div>
+          <div class="yh-ri"><span class="yh-rn" style="background:#f39c12;">3</span><span class="yh-rname">粮油调味</span><div class="yh-rbar"><div class="yh-rfill" style="width:75%"></div></div><span class="yh-rpct">75%</span></div>
+          <div class="yh-ri"><span class="yh-rn" style="background:#3498db;">4</span><span class="yh-rname">饮料酒水</span><div class="yh-rbar"><div class="yh-rfill" style="width:70%"></div></div><span class="yh-rpct">70%</span></div>
+          <div class="yh-ri"><span class="yh-rn" style="background:#2ecc71;">5</span><span class="yh-rname">零食坚果</span><div class="yh-rbar"><div class="yh-rfill" style="width:65%"></div></div><span class="yh-rpct">65%</span></div>
+        </div>
+      </div>
+      <div class="yh-p" style="flex:1.3;">
+        <div class="yh-pt">🛒 商品销售TOP100</div>
+        <div class="yh-scroll">
+          <div id="c_top" style="will-change:transform;">
+            <div class="yh-si"><span>鸡蛋（散装）30枚</span><span>¥25.8</span></div>
+            <div class="yh-si"><span>金龙鱼调和油5L</span><span>¥65.9</span></div>
+            <div class="yh-si"><span>农夫山泉550ml×24</span><span>¥36.0</span></div>
+            <div class="yh-si"><span>伊利纯牛奶250ml×16</span><span>¥48.0</span></div>
+            <div class="yh-si"><span>东北大米10kg</span><span>¥58.0</span></div>
+            <div class="yh-si"><span>维达抽纸130抽×3</span><span>¥19.9</span></div>
+            <div class="yh-si"><span>可口可乐330ml×6</span><span>¥14.8</span></div>
+            <div class="yh-si"><span>立白洗衣液3kg</span><span>¥39.9</span></div>
+            <div class="yh-si"><span>蒙牛酸酸乳250ml×20</span><span>¥42.0</span></div>
+            <div class="yh-si"><span>康师傅方便面24包</span><span>¥32.0</span></div>
+            <div class="yh-si"><span>海天酱油500ml×2</span><span>¥22.5</span></div>
+            <div class="yh-si"><span>洽洽瓜子260g×3</span><span>¥28.8</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== 中列 ===== -->
+    <div class="yh-col">
+      <div class="yh-p" style="flex:0 0 auto;">
+        <div class="yh-pt">📊 当月核心数据</div>
+        <div class="yh-cards">
+          <div class="yh-card"><div class="yh-cl">当月营业额</div><div class="yh-cv">328.6<span class="yh-cu">万</span></div></div>
+          <div class="yh-card"><div class="yh-cl">客单价</div><div class="yh-cv">68.5<span class="yh-cu">元</span></div></div>
+          <div class="yh-card"><div class="yh-cl">当月客流量</div><div class="yh-cv">48.2<span class="yh-cu">万</span></div></div>
+        </div>
+      </div>
+      <div class="yh-p" style="flex:2.5;">
+        <div class="yh-pt">🗺️ 门店分布（以成都为中心辐射）</div>
+        <div class="yh-map" id="c_map"></div>
+      </div>
+      <div class="yh-p" style="flex:1.5;">
+        <div class="yh-pt">📈 月度销售额走势</div>
+        <div class="yh-chart"><canvas id="c_monthly"></canvas></div>
+      </div>
+    </div>
+
+    <!-- ===== 右列 ===== -->
+    <div class="yh-col">
+      <div class="yh-p" style="flex:1.8;">
+        <div class="yh-pt">💳 支付方式占比</div>
+        <div class="yh-chart"><canvas id="c_pay"></canvas></div>
+      </div>
+      <div class="yh-p" style="flex:0 0 auto;">
+        <div class="yh-pt">👥 新增及会员累计</div>
+        <div class="yh-mem">
+          <div class="yh-mc n"><div class="yh-ml">今日新增会员</div><div class="yh-mv">+326</div></div>
+          <div class="yh-mc t"><div class="yh-ml">会员累计</div><div class="yh-mv">58,236</div></div>
+        </div>
+      </div>
+      <div class="yh-p" style="flex:1.5;">
+        <div class="yh-pt">⏰ 时段销售数据</div>
+        <div class="yh-chart"><canvas id="c_hour"></canvas></div>
+      </div>
+      <div class="yh-p" style="flex:2;">
+        <div class="yh-pt">🔴 实时成交数据（单笔滚动更新）</div>
+        <div style="flex:1;overflow:hidden;" id="c_rt"></div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/echarts@5.4.3/dist/echarts.min.js"></script>
+<script>
+(function(){
+  // 时间
+  function tick(){
+    const n=new Date(),wd=['星期日','星期一','星期二','星期三','星期四','星期五','星期六'];
+    document.getElementById('yh_d').textContent=n.getFullYear()+'年'+(n.getMonth()+1).toString().padStart(2,'0')+'月'+n.getDate().toString().padStart(2,'0')+'日 '+wd[n.getDay()];
+    document.getElementById('yh_t').textContent=n.toLocaleTimeString('zh-CN',{hour12:false});
+  }
+  setInterval(tick,1000);tick();
+
+  Chart.defaults.color='rgba(255,255,255,0.7)';
+  Chart.defaults.borderColor='rgba(255,255,255,0.07)';
+
+  // 建店状态
+  new Chart(document.getElementById('c_store'),{type:'bar',data:{labels:['筹备中','装修中','已开业','运营成熟'],datasets:[{data:[15,8,156,21],backgroundColor:['rgba(52,152,219,0.85)','rgba(243,156,18,0.85)','rgba(46,204,113,0.85)','rgba(155,89,182,0.85)'],borderRadius:4}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{y:{grid:{color:'rgba(255,255,255,0.07)'},ticks:{font:{size:9}}},x:{grid:{display:false},ticks:{font:{size:9}}}}}});
+
+  // 地域分布
+  new Chart(document.getElementById('c_region'),{type:'doughnut',data:{labels:['成都','绵阳','德阳','南充','宜宾','其他'],datasets:[{data:[85,42,28,18,15,12],backgroundColor:['#f39c12','#3498db','#2ecc71','#e74c3c','#9b59b6','#95a5a6'],borderWidth:0}]},options:{responsive:true,maintainAspectRatio:false,cutout:'52%',plugins:{legend:{position:'right',labels:{font:{size:9},boxWidth:10,padding:6}}}}});
+
+  // 客流量时段
+  new Chart(document.getElementById('c_flow'),{type:'line',data:{labels:['8时','9时','10时','11时','12时','13时','14时','15时','16时','17时','18时','19时'],datasets:[{data:[120,280,450,520,380,320,280,350,480,620,580,420],borderColor:'#f39c12',backgroundColor:'rgba(243,156,18,0.15)',fill:true,tension:0.4,pointRadius:2}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{y:{grid:{color:'rgba(255,255,255,0.07)'},ticks:{font:{size:9}}},x:{grid:{display:false},ticks:{font:{size:9}}}}}});
+
+  // 月度走势
+  new Chart(document.getElementById('c_monthly'),{type:'line',data:{labels:['1月','2月','3月','4月','5月','6月','7月','8月','9月','10月','11月','12月'],datasets:[{data:[285,298,312,298,325,318,335,342,328,356,348,368],borderColor:'#f39c12',backgroundColor:'rgba(243,156,18,0.1)',fill:true,tension:0.4,pointBackgroundColor:'#f39c12',pointRadius:3}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{y:{grid:{color:'rgba(255,255,255,0.07)'},ticks:{font:{size:9}}},x:{grid:{display:false},ticks:{font:{size:9}}}}}});
+
+  // 支付方式
+  new Chart(document.getElementById('c_pay'),{type:'doughnut',data:{labels:['微信支付','支付宝','现金','会员卡'],datasets:[{data:[42,35,8,15],backgroundColor:['#07C160','#1677FF','#888','#f39c12'],borderWidth:0}]},options:{responsive:true,maintainAspectRatio:false,cutout:'60%',plugins:{legend:{position:'bottom',labels:{font:{size:10},padding:10,boxWidth:12}}}}});
+
+  // 时段销售
+  new Chart(document.getElementById('c_hour'),{type:'bar',data:{labels:['早市','上午','中午','下午','傍晚','晚市'],datasets:[{data:[12.5,28.6,18.2,22.8,35.6,28.3],backgroundColor:'rgba(243,156,18,0.85)',borderRadius:4}]},options:{indexAxis:'y',responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{grid:{color:'rgba(255,255,255,0.07)'},ticks:{font:{size:9}}},y:{grid:{display:false},ticks:{font:{size:9}}}}}});
+
+  // ECharts地图
+  const ec=echarts.init(document.getElementById('c_map'),'dark');
+  ec.setOption({backgroundColor:'transparent',tooltip:{trigger:'item',formatter:'{b}: {c}家'},series:[{type:'map',map:'china',roam:false,center:[104.5,35.5],zoom:2.6,label:{show:false},itemStyle:{areaColor:'rgba(243,156,18,0.15)',borderColor:'rgba(243,156,18,0.35)'},emphasis:{itemStyle:{areaColor:'rgba(243,156,18,0.45)'}},data:[{name:'四川',value:156},{name:'重庆',value:12},{name:'陕西',value:8},{name:'云南',value:6},{name:'贵州',value:5}]},{type:'effectScatter',coordinateSystem:'geo',data:[{name:'成都',value:[104.06,30.67,85]},{name:'绵阳',value:[104.68,31.47,42]},{name:'德阳',value:[104.38,31.13,28]},{name:'南充',value:[106.10,30.80,18]},{name:'宜宾',value:[104.63,28.77,15]},{name:'重庆',value:[106.55,29.56,12]}],symbolSize:function(v){return v[2]/7+5;},rippleEffect:{brushType:'stroke'},itemStyle:{color:'#f39c12',shadowBlur:8,shadowColor:'#f39c12'},label:{show:true,position:'right',formatter:'{b}',fontSize:10,color:'#fff'}}]});
+  window.addEventListener('resize',function(){ec.resize();});
+
+  // 实时成交
+  const stores=['成都武侯店','成都锦江店','成都青羊店','绵阳园艺店','德阳旌阳店','南充顺庆店','宜宾翠屏店'];
+  function addRT(){
+    const div=document.getElementById('c_rt');
+    const n=new Date();
+    const el=document.createElement('div');
+    el.className='yh-rti';
+    el.style.opacity='0';el.style.transform='translateX(15px)';
+    el.innerHTML='<span class="yh-rtt">'+n.toLocaleTimeString('zh-CN',{hour12:false})+'</span><span class="yh-rts">'+stores[Math.floor(Math.random()*stores.length)]+'</span><span class="yh-rta">¥'+(Math.random()*300+15).toFixed(2)+'</span>';
+    div.insertBefore(el,div.firstChild);
+    setTimeout(function(){el.style.transition='all 0.4s';el.style.opacity='1';el.style.transform='translateX(0)';},10);
+    while(div.children.length>10) div.removeChild(div.lastChild);
+  }
+  setInterval(addRT,2500);
+  for(let i=0;i<5;i++) addRT();
+
+  // TOP100无缝滚动
+  const top=document.getElementById('c_top');
+  top.innerHTML+=top.innerHTML;
+  let sy=0;
+  setInterval(function(){
+    sy+=0.5;
+    if(sy>=top.scrollHeight/2) sy=0;
+    top.style.transform='translateY(-'+sy+'px)';
+  },30);
+})();
+</script>
