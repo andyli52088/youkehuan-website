@@ -1,0 +1,846 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>优客欢经营数据分析系统</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/echarts@5.4.3/dist/echarts.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Microsoft YaHei', sans-serif;
+            background: #0a1628;
+            color: #fff;
+            min-height: 100vh;
+        }
+        
+        /* 顶部信息栏 */
+        .header {
+            background: linear-gradient(135deg, #1a1f35 0%, #0d1321 100%);
+            padding: 15px 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+        
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 30px;
+        }
+        
+        .logo {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #f39c12;
+        }
+        
+        .header-center {
+            text-align: center;
+        }
+        
+        .header-center h1 {
+            font-size: 1.8rem;
+            background: linear-gradient(135deg, #f39c12, #f1c40f);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        
+        .header-right {
+            display: flex;
+            align-items: center;
+            gap: 30px;
+        }
+        
+        .date-time {
+            text-align: right;
+        }
+        
+        .date-time .date {
+            font-size: 1.2rem;
+            color: #f39c12;
+        }
+        
+        .date-time .time {
+            font-size: 1.5rem;
+            font-weight: bold;
+        }
+        
+        .weather {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            background: rgba(255,255,255,0.1);
+            padding: 10px 20px;
+            border-radius: 10px;
+        }
+        
+        .weather-icon {
+            font-size: 2rem;
+        }
+        
+        .weather-info {
+            text-align: left;
+        }
+        
+        .weather-temp {
+            font-size: 1.2rem;
+            font-weight: bold;
+        }
+        
+        .weather-desc {
+            font-size: 0.8rem;
+            opacity: 0.8;
+        }
+        
+        /* 主体区域 */
+        .main-content {
+            display: grid;
+            grid-template-columns: 1fr 1.2fr 1fr;
+            gap: 15px;
+            padding: 15px;
+            height: calc(100vh - 100px);
+        }
+        
+        .panel {
+            background: linear-gradient(135deg, rgba(26,31,53,0.9) 0%, rgba(13,19,33,0.9) 100%);
+            border-radius: 15px;
+            border: 1px solid rgba(255,255,255,0.1);
+            padding: 15px;
+            overflow: hidden;
+        }
+        
+        .panel-title {
+            font-size: 1rem;
+            color: #f39c12;
+            margin-bottom: 10px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .panel-content {
+            height: calc(100% - 40px);
+        }
+        
+        /* 左列 */
+        .left-panel {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+        
+        .chart-container {
+            flex: 1;
+            min-height: 0;
+        }
+        
+        .chart-container.small {
+            flex: 0.8;
+        }
+        
+        /* 中列 */
+        .middle-panel {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+        
+        /* 右列 */
+        .right-panel {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+        
+        /* 数据卡片 */
+        .data-cards {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 15px;
+        }
+        
+        .data-card {
+            background: linear-gradient(135deg, rgba(243,156,18,0.2) 0%, rgba(243,156,18,0.05) 100%);
+            border: 1px solid rgba(243,156,18,0.3);
+            border-radius: 10px;
+            padding: 15px;
+            text-align: center;
+        }
+        
+        .data-card .label {
+            font-size: 0.8rem;
+            color: rgba(255,255,255,0.7);
+            margin-bottom: 5px;
+        }
+        
+        .data-card .value {
+            font-size: 1.8rem;
+            font-weight: bold;
+            color: #f39c12;
+        }
+        
+        .data-card .unit {
+            font-size: 0.9rem;
+            color: rgba(255,255,255,0.6);
+        }
+        
+        /* 滚动列表 */
+        .scroll-list {
+            height: 150px;
+            overflow: hidden;
+            position: relative;
+        }
+        
+        .scroll-list ul {
+            animation: scrollUp 10s linear infinite;
+        }
+        
+        .scroll-list li {
+            padding: 8px 10px;
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.85rem;
+        }
+        
+        .scroll-list li:nth-child(odd) {
+            background: rgba(255,255,255,0.02);
+        }
+        
+        @keyframes scrollUp {
+            0% { transform: translateY(0); }
+            100% { transform: translateY(-50%); }
+        }
+        
+        /* 实时成交滚动 */
+        .realtime-list {
+            height: 200px;
+            overflow: hidden;
+        }
+        
+        .realtime-item {
+            padding: 10px;
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 10px;
+            align-items: center;
+            font-size: 0.85rem;
+            animation: fadeIn 0.5s ease;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateX(20px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+        
+        .realtime-item .time {
+            color: #f39c12;
+        }
+        
+        .realtime-item .store {
+            color: rgba(255,255,255,0.8);
+        }
+        
+        .realtime-item .amount {
+            color: #2ecc71;
+            font-weight: bold;
+            text-align: right;
+        }
+        
+        /* 中国地图容器 */
+        .china-map {
+            width: 100%;
+            height: 250px;
+        }
+        
+        /* 排行榜 */
+        .ranking-list {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+        
+        .ranking-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 5px 0;
+        }
+        
+        .ranking-item .rank {
+            width: 20px;
+            height: 20px;
+            background: #f39c12;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.7rem;
+            font-weight: bold;
+        }
+        
+        .ranking-item .rank.top {
+            background: linear-gradient(135deg, #f39c12, #e74c3c);
+        }
+        
+        .ranking-item .name {
+            flex: 1;
+            font-size: 0.85rem;
+        }
+        
+        .ranking-item .bar {
+            width: 100px;
+            height: 8px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 4px;
+            overflow: hidden;
+        }
+        
+        .ranking-item .bar-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #f39c12, #f1c40f);
+            border-radius: 4px;
+        }
+        
+        /* 会员数据 */
+        .member-stats {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+        }
+        
+        .member-card {
+            background: rgba(255,255,255,0.05);
+            border-radius: 8px;
+            padding: 12px;
+            text-align: center;
+        }
+        
+        .member-card .label {
+            font-size: 0.75rem;
+            color: rgba(255,255,255,0.6);
+        }
+        
+        .member-card .value {
+            font-size: 1.3rem;
+            font-weight: bold;
+            color: #3498db;
+        }
+        
+        .member-card.new .value {
+            color: #2ecc71;
+        }
+        
+        /* 响应式 */
+        @media (max-width: 1200px) {
+            .main-content {
+                grid-template-columns: 1fr;
+                height: auto;
+            }
+            
+            .panel {
+                height: auto;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- 顶部信息栏 -->
+    <header class="header">
+        <div class="header-left">
+            <div class="logo">优客欢</div>
+        </div>
+        <div class="header-center">
+            <h1>经营数据分析系统</h1>
+        </div>
+        <div class="header-right">
+            <div class="date-time">
+                <div class="date" id="currentDate">2026年03月26日</div>
+                <div class="time" id="currentTime">00:00:00</div>
+            </div>
+            <div class="weather">
+                <span class="weather-icon">☀️</span>
+                <div class="weather-info">
+                    <div class="weather-temp">26°C</div>
+                    <div class="weather-desc">成都 · 晴</div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- 主体内容 -->
+    <main class="main-content">
+        <!-- 左列 -->
+        <div class="left-panel">
+            <!-- 建店状态数据 -->
+            <div class="panel">
+                <div class="panel-title">📊 建店状态数据</div>
+                <div class="panel-content chart-container">
+                    <canvas id="storeStatusChart"></canvas>
+                </div>
+            </div>
+            
+            <!-- 门店地域分布 -->
+            <div class="panel">
+                <div class="panel-title">🗺️ 门店地域分布</div>
+                <div class="panel-content chart-container">
+                    <canvas id="regionPieChart"></canvas>
+                </div>
+            </div>
+            
+            <!-- 客流量时段统计 -->
+            <div class="panel">
+                <div class="panel-title">📈 客流量时段统计</div>
+                <div class="panel-content chart-container small">
+                    <canvas id="flowTrendChart"></canvas>
+                </div>
+            </div>
+            
+            <!-- 畅销品类排行榜 -->
+            <div class="panel">
+                <div class="panel-title">🏆 畅销品类排行榜</div>
+                <div class="panel-content ranking-list">
+                    <div class="ranking-item">
+                        <span class="rank top">1</span>
+                        <span class="name">生鲜果蔬</span>
+                        <div class="bar"><div class="bar-fill" style="width: 95%"></div></div>
+                    </div>
+                    <div class="ranking-item">
+                        <span class="rank top">2</span>
+                        <span class="name">日用百货</span>
+                        <div class="bar"><div class="bar-fill" style="width: 85%"></div></div>
+                    </div>
+                    <div class="ranking-item">
+                        <span class="rank">3</span>
+                        <span class="name">粮油调味</span>
+                        <div class="bar"><div class="bar-fill" style="width: 75%"></div></div>
+                    </div>
+                    <div class="ranking-item">
+                        <span class="rank">4</span>
+                        <span class="name">饮料酒水</span>
+                        <div class="bar"><div class="bar-fill" style="width: 70%"></div></div>
+                    </div>
+                    <div class="ranking-item">
+                        <span class="rank">5</span>
+                        <span class="name">零食坚果</span>
+                        <div class="bar"><div class="bar-fill" style="width: 65%"></div></div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 商品销售TOP100 -->
+            <div class="panel">
+                <div class="panel-title">🛒 商品销售TOP100</div>
+                <div class="panel-content scroll-list">
+                    <ul id="top100List">
+                        <li><span>鸡蛋（散装）30枚</span><span style="color:#f39c12">¥25.8</span></li>
+                        <li><span>金龙鱼调和油5L</span><span style="color:#f39c12">¥65.9</span></li>
+                        <li><span>农夫山泉550ml*24</span><span style="color:#f39c12">¥36.0</span></li>
+                        <li><span>伊利纯牛奶250ml*16</span><span style="color:#f39c12">¥48.0</span></li>
+                        <li><span>东北大米10kg</span><span style="color:#f39c12">¥58.0</span></li>
+                        <li><span>维达抽纸130抽*3</span><span style="color:#f39c12">¥19.9</span></li>
+                        <li><span>可口可乐330ml*6</span><span style="color:#f39c12">¥14.8</span></li>
+                        <li><span>立白洗衣液3kg</span><span style="color:#f39c12">¥39.9</span></li>
+                        <li><span>蒙牛酸酸乳250ml*20</span><span style="color:#f39c12">¥42.0</span></li>
+                        <li><span>康师傅方便面24包</span><span style="color:#f39c12">¥32.0</span></li>
+                        <li><span>鸡蛋（散装）30枚</span><span style="color:#f39c12">¥25.8</span></li>
+                        <li><span>金龙鱼调和油5L</span><span style="color:#f39c12">¥65.9</span></li>
+                        <li><span>农夫山泉550ml*24</span><span style="color:#f39c12">¥36.0</span></li>
+                        <li><span>伊利纯牛奶250ml*16</span><span style="color:#f39c12">¥48.0</span></li>
+                        <li><span>东北大米10kg</span><span style="color:#f39c12">¥58.0</span></li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- 中列 -->
+        <div class="middle-panel">
+            <!-- 当日核心数据 -->
+            <div class="panel">
+                <div class="panel-title">📊 当日核心数据</div>
+                <div class="panel-content">
+                    <div class="data-cards">
+                        <div class="data-card">
+                            <div class="label">当月营业额</div>
+                            <div class="value">328.6<span class="unit">万</span></div>
+                        </div>
+                        <div class="data-card">
+                            <div class="label">客单价</div>
+                            <div class="value">68.5<span class="unit">元</span></div>
+                        </div>
+                        <div class="data-card">
+                            <div class="label">当月客流量</div>
+                            <div class="value">48.2<span class="unit">万</span></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 中国地图 -->
+            <div class="panel">
+                <div class="panel-title">🗺️ 门店地域分布（以成都为中心）</div>
+                <div class="panel-content">
+                    <div id="chinaMap" class="china-map"></div>
+                </div>
+            </div>
+            
+            <!-- 月度销售额走势 -->
+            <div class="panel" style="flex: 1;">
+                <div class="panel-title">📈 月度销售额走势</div>
+                <div class="panel-content chart-container">
+                    <canvas id="monthlySalesChart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- 右列 -->
+        <div class="right-panel">
+            <!-- 支付方式占比 -->
+            <div class="panel">
+                <div class="panel-title">💳 支付方式占比</div>
+                <div class="panel-content chart-container small">
+                    <canvas id="paymentPieChart"></canvas>
+                </div>
+            </div>
+            
+            <!-- 新增及会员累计 -->
+            <div class="panel">
+                <div class="panel-title">👥 会员数据</div>
+                <div class="panel-content">
+                    <div class="member-stats">
+                        <div class="member-card new">
+                            <div class="label">今日新增</div>
+                            <div class="value">+326</div>
+                        </div>
+                        <div class="member-card">
+                            <div class="label">会员累计</div>
+                            <div class="value">58,236</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 时段销售数据 -->
+            <div class="panel">
+                <div class="panel-title">⏰ 时段销售数据</div>
+                <div class="panel-content chart-container small">
+                    <canvas id="hourlySalesChart"></canvas>
+                </div>
+            </div>
+            
+            <!-- 实时成交数据 -->
+            <div class="panel" style="flex: 1;">
+                <div class="panel-title">🔴 实时成交数据</div>
+                <div class="panel-content realtime-list" id="realtimeList">
+                    <!-- 动态插入 -->
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        // 更新时间
+        function updateDateTime() {
+            const now = new Date();
+            const weekdays = ['星期日', '星期一', '星期二', '星期三', '星期四', '星期五', '星期六'];
+            
+            const year = now.getFullYear();
+            const month = String(now.getMonth() + 1).padStart(2, '0');
+            const day = String(now.getDate()).padStart(2, '0');
+            const weekday = weekdays[now.getDay()];
+            
+            const hours = String(now.getHours()).padStart(2, '0');
+            const minutes = String(now.getMinutes()).padStart(2, '0');
+            const seconds = String(now.getSeconds()).padStart(2, '0');
+            
+            document.getElementById('currentDate').textContent = 
+                `${year}年${month}月${day}日 ${weekday}`;
+            document.getElementById('currentTime').textContent = 
+                `${hours}:${minutes}:${seconds}`;
+        }
+        
+        setInterval(updateDateTime, 1000);
+        updateDateTime();
+        
+        // ===== 图表初始化 =====
+        
+        // 建店状态数据（条形图）
+        new Chart(document.getElementById('storeStatusChart'), {
+            type: 'bar',
+            data: {
+                labels: ['筹备中', '装修中', '已开业', '运营成熟'],
+                datasets: [{
+                    label: '门店数量',
+                    data: [15, 8, 156, 21],
+                    backgroundColor: [
+                        'rgba(52, 152, 219, 0.8)',
+                        'rgba(243, 156, 18, 0.8)',
+                        'rgba(46, 204, 113, 0.8)',
+                        'rgba(155, 89, 182, 0.8)'
+                    ],
+                    borderRadius: 5
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { display: false }
+                },
+                scales: {
+                    y: { 
+                        beginAtZero: true,
+                        grid: { color: 'rgba(255,255,255,0.1)' },
+                        ticks: { color: 'rgba(255,255,255,0.7)' }
+                    },
+                    x: {
+                        grid: { display: false },
+                        ticks: { color: 'rgba(255,255,255,0.7)' }
+                    }
+                }
+            }
+        });
+        
+        // 门店地域分布（大饼图）
+        new Chart(document.getElementById('regionPieChart'), {
+            type: 'doughnut',
+            data: {
+                labels: ['成都', '绵阳', '德阳', '南充', '宜宾', '其他'],
+                datasets: [{
+                    data: [85, 42, 28, 18, 15, 12],
+                    backgroundColor: [
+                        '#f39c12', '#3498db', '#2ecc71', '#e74c3c', '#9b59b6', '#95a5a6'
+                    ]
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'right',
+                        labels: { color: '#fff', font: { size: 10 } }
+                    }
+                }
+            }
+        });
+        
+        // 客流量时段统计（趋势图）
+        new Chart(document.getElementById('flowTrendChart'), {
+            type: 'line',
+            data: {
+                labels: ['8时', '9时', '10时', '11时', '12时', '13时', '14时', '15时', '16时', '17时', '18时', '19时'],
+                datasets: [{
+                    label: '客流量',
+                    data: [120, 280, 450, 520, 380, 320, 280, 350, 480, 620, 580, 420],
+                    borderColor: '#f39c12',
+                    backgroundColor: 'rgba(243, 156, 18, 0.2)',
+                    fill: true,
+                    tension: 0.4
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: { legend: { display: false } },
+                scales: {
+                    y: { 
+                        grid: { color: 'rgba(255,255,255,0.1)' },
+                        ticks: { color: 'rgba(255,255,255,0.7)' }
+                    },
+                    x: {
+                        grid: { display: false },
+                        ticks: { color: 'rgba(255,255,255,0.7)', font: { size: 9 } }
+                    }
+                }
+            }
+        });
+        
+        // 月度销售额走势（折线图）
+        new Chart(document.getElementById('monthlySalesChart'), {
+            type: 'line',
+            data: {
+                labels: ['1月', '2月', '3月', '4月', '5月', '6月', '7月', '8月', '9月', '10月', '11月', '12月'],
+                datasets: [{
+                    label: '销售额(万)',
+                    data: [285, 298, 312, 298, 325, 318, 335, 342, 328, 356, 348, 368],
+                    borderColor: '#f39c12',
+                    backgroundColor: 'rgba(243, 156, 18, 0.1)',
+                    fill: true,
+                    tension: 0.4,
+                    pointBackgroundColor: '#f39c12'
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: { legend: { display: false } },
+                scales: {
+                    y: { 
+                        grid: { color: 'rgba(255,255,255,0.1)' },
+                        ticks: { color: 'rgba(255,255,255,0.7)' }
+                    },
+                    x: {
+                        grid: { display: false },
+                        ticks: { color: 'rgba(255,255,255,0.7)', font: { size: 10 } }
+                    }
+                }
+            }
+        });
+        
+        // 支付方式占比（圆环图）
+        new Chart(document.getElementById('paymentPieChart'), {
+            type: 'doughnut',
+            data: {
+                labels: ['微信支付', '支付宝', '现金', '会员卡'],
+                datasets: [{
+                    data: [42, 35, 8, 15],
+                    backgroundColor: ['#07C160', '#1677FF', '#666', '#f39c12'],
+                    borderWidth: 0
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                cutout: '60%',
+                plugins: {
+                    legend: {
+                        position: 'bottom',
+                        labels: { color: '#fff', font: { size: 11 }, padding: 15 }
+                    }
+                }
+            }
+        });
+        
+        // 时段销售数据
+        new Chart(document.getElementById('hourlySalesChart'), {
+            type: 'bar',
+            data: {
+                labels: ['早市', '上午', '中午', '下午', '傍晚', '晚市'],
+                datasets: [{
+                    label: '销售额(万)',
+                    data: [12.5, 28.6, 18.2, 22.8, 35.6, 28.3],
+                    backgroundColor: 'rgba(243, 156, 18, 0.8)',
+                    borderRadius: 5
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                indexAxis: 'y',
+                plugins: { legend: { display: false } },
+                scales: {
+                    x: { 
+                        grid: { color: 'rgba(255,255,255,0.1)' },
+                        ticks: { color: 'rgba(255,255,255,0.7)' }
+                    },
+                    y: {
+                        grid: { display: false },
+                        ticks: { color: 'rgba(255,255,255,0.7)' }
+                    }
+                }
+            }
+        });
+        
+        // ===== 中国地图（简化版） =====
+        const mapChart = echarts.init(document.getElementById('chinaMap'));
+        const mapOption = {
+            backgroundColor: 'transparent',
+            geo: {
+                map: 'china',
+                roam: false,
+                center: [104.5, 36], // 以成都为中心
+                zoom: 2.5,
+                itemStyle: {
+                    areaColor: 'rgba(243, 156, 18, 0.3)',
+                    borderColor: 'rgba(243, 156, 18, 0.5)'
+                },
+                emphasis: {
+                    itemStyle: {
+                        areaColor: 'rgba(243, 156, 18, 0.6)'
+                    }
+                }
+            },
+            series: [{
+                type: 'scatter',
+                coordinateSystem: 'geo',
+                data: [
+                    { name: '成都', value: [104.06, 30.67, 85] },
+                    { name: '绵阳', value: [104.68, 31.47, 42] },
+                    { name: '德阳', value: [104.38, 31.13, 28] },
+                    { name: '南充', value: [106.10, 30.80, 18] },
+                    { name: '宜宾', value: [104.63, 28.77, 15] },
+                    { name: '重庆', value: [106.55, 29.56, 12] },
+                    { name: '西安', value: [108.94, 34.34, 8] }
+                ],
+                symbolSize: function(val) {
+                    return val[2] / 5 + 5;
+                },
+                itemStyle: {
+                    color: '#f39c12',
+                    shadowBlur: 10,
+                    shadowColor: '#f39c12'
+                },
+                label: {
+                    show: true,
+                    position: 'right',
+                    formatter: '{b}',
+                    fontSize: 10,
+                    color: '#fff'
+                }
+            }]
+        };
+        mapChart.setOption(mapOption);
+        
+        // ===== 实时成交数据 =====
+        const stores = ['成都武侯店', '成都锦江店', '成都青羊店', '绵阳园艺店', '德阳旌阳店', '南充顺庆店'];
+        const realtimeList = document.getElementById('realtimeList');
+        
+        function addRealtimeData() {
+            const now = new Date();
+            const time = `${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}:${String(now.getSeconds()).padStart(2,'0')}`;
+            const store = stores[Math.floor(Math.random() * stores.length)];
+            const amount = (Math.random() * 200 + 10).toFixed(2);
+            
+            const item = document.createElement('div');
+            item.className = 'realtime-item';
+            item.innerHTML = `
+                <span class="time">${time}</span>
+                <span class="store">${store}</span>
+                <span class="amount">¥${amount}</span>
+            `;
+            
+            realtimeList.insertBefore(item, realtimeList.firstChild);
+            
+            // 保留最近20条
+            while (realtimeList.children.length > 20) {
+                realtimeList.removeChild(realtimeList.lastChild);
+            }
+        }
+        
+        // 每3秒添加一条新数据
+        setInterval(addRealtimeData, 3000);
+        
+        // 初始添加3条数据
+        for (let i = 0; i < 3; i++) {
+            addRealtimeData();
+        }
+        
+        // 窗口大小变化时重新渲染图表
+        window.addEventListener('resize', function() {
+            mapChart.resize();
+        });
+    </script>
+</body>
+</html>
